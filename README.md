@@ -22,7 +22,7 @@ Zero dependencies. Works with any React project (Vite, CRA, Next.js).
 ### Run instantly with npx (no install)
 
 ```bash
-npx github:yourname/react-tree src/App.jsx
+npx github:argado2248/react-tree src/App.jsx
 ```
 
 ### Or clone and install globally
