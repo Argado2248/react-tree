@@ -45,6 +45,8 @@ cd your-react-project
 react-tree
 ```
 
+It checks for updates once per day and lets you know when a new version is available.
+
 ---
 
 ## Usage
@@ -129,10 +131,29 @@ No build step, no AST libraries — just Node.js built-ins.
 
 ---
 
+## Updating
+
+If you installed with `npm link`, react-tree checks for updates once a day. When a new version is available you'll see:
+
+```
+  ⟳  Update available!  Run react-tree --update to get the latest version.
+```
+
+Just run:
+
+```bash
+react-tree --update
+```
+
+That's it — pulls the latest from GitHub automatically.
+
+---
+
 ## Options
 
 | Flag | Description |
 | --- | --- |
 | `--html` | Generate an interactive HTML page and open it in the browser |
 | `--out <path>` | Custom path for the HTML file (default: `react-tree.html`) |
+| `--update` | Pull the latest version from GitHub |
 | `--help` | Show usage information |

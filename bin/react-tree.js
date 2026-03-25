@@ -8,6 +8,51 @@ import { generateHTML } from '../src/html.js'
 
 const args = process.argv.slice(2)
 
+// ── Self-update ─────────────────────────────────────────────
+const REPO_DIR = path.resolve(new URL('.', import.meta.url).pathname, '..')
+
+function selfUpdate() {
+  console.log(`\n  \x1b[36m⟳\x1b[0m  Updating react-tree...`)
+  try {
+    execSync('git pull --ff-only', { cwd: REPO_DIR, stdio: 'pipe' })
+    const msg = execSync('git log -1 --pretty=%s', { cwd: REPO_DIR, encoding: 'utf8' }).trim()
+    console.log(`  \x1b[32m✓\x1b[0m  Up to date — latest: ${msg}\n`)
+  } catch {
+    console.error(`  \x1b[31m✗\x1b[0m  Update failed. Run manually:\n      cd ${REPO_DIR} && git pull\n`)
+    process.exit(1)
+  }
+}
+
+// Check for updates once per day (non-blocking, best-effort)
+function checkForUpdates() {
+  const stampFile = path.join(REPO_DIR, '.last-update-check')
+  const ONE_DAY = 24 * 60 * 60 * 1000
+
+  try {
+    if (fs.existsSync(stampFile)) {
+      const lastCheck = Number(fs.readFileSync(stampFile, 'utf8'))
+      if (Date.now() - lastCheck < ONE_DAY) return
+    }
+
+    fs.writeFileSync(stampFile, String(Date.now()))
+
+    const local = execSync('git rev-parse HEAD', { cwd: REPO_DIR, encoding: 'utf8' }).trim()
+    const remote = execSync('git ls-remote origin HEAD', { cwd: REPO_DIR, encoding: 'utf8', timeout: 5000 })
+      .split('\t')[0].trim()
+
+    if (local !== remote) {
+      console.log(`\n  \x1b[33m⟳  Update available!\x1b[0m  Run \x1b[1mreact-tree --update\x1b[0m to get the latest version.`)
+    }
+  } catch {
+    // Silently ignore — no network, no git, etc.
+  }
+}
+
+if (args.includes('--update')) {
+  selfUpdate()
+  process.exit(0)
+}
+
 if (args.includes('--help') || args.includes('-h')) {
   console.log(`
   react-tree — Visualize your React component tree
@@ -21,6 +66,7 @@ if (args.includes('--help') || args.includes('-h')) {
   Options:
     --html        Generate react-tree.html and open it in your browser
     --out <path>  Custom output path for --html (default: react-tree.html)
+    --update      Pull the latest version from GitHub
     --help        Show this help message
 
   Examples:
@@ -35,6 +81,9 @@ if (args.includes('--help') || args.includes('-h')) {
 `)
   process.exit(0)
 }
+
+// Check for updates in the background (once per day, non-blocking)
+checkForUpdates()
 
 // Common React entry points to auto-detect
 const ENTRY_CANDIDATES = [
