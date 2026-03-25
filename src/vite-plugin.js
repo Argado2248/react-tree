@@ -1,6 +1,22 @@
+import fs from 'fs'
 import path from 'path'
 import { buildTree } from './tree.js'
 import { generateHTML } from './html.js'
+
+const ENTRY_CANDIDATES = [
+  'src/App.jsx', 'src/App.tsx', 'src/app.jsx', 'src/app.tsx',
+  'src/main.jsx', 'src/main.tsx', 'src/index.jsx', 'src/index.tsx',
+  'app/page.jsx', 'app/page.tsx',
+  'pages/index.jsx', 'pages/index.tsx', 'pages/_app.jsx', 'pages/_app.tsx',
+]
+
+function detectEntry(root) {
+  for (const candidate of ENTRY_CANDIDATES) {
+    const abs = path.resolve(root, candidate)
+    if (fs.existsSync(abs)) return abs
+  }
+  return null
+}
 
 /**
  * Vite plugin that adds a /__react-tree route to the dev server.
@@ -8,7 +24,11 @@ import { generateHTML } from './html.js'
  * Usage in vite.config.js of the target project:
  *
  *   import reactTree from 'react-tree/vite'
- *   export default { plugins: [reactTree({ entry: 'src/App.jsx' })] }
+ *   export default { plugins: [reactTree()] }
+ *
+ * Entry is auto-detected. To override:
+ *
+ *   reactTree({ entry: 'src/MyApp.tsx' })
  *
  * Then visit: http://localhost:5173/__react-tree
  *
@@ -26,8 +46,18 @@ export default function reactTreePlugin(options = {}) {
 
     configureServer(server) {
       server.middlewares.use('/__react-tree', (_req, res) => {
-        const entryRel = options.entry ?? 'src/App.jsx'
-        const entryAbs = path.resolve(projectRoot, entryRel)
+        let entryAbs
+        if (options.entry) {
+          entryAbs = path.resolve(projectRoot, options.entry)
+        } else {
+          entryAbs = detectEntry(projectRoot)
+        }
+
+        if (!entryAbs) {
+          res.setHeader('Content-Type', 'text/html')
+          res.end(`<pre style="color:red;padding:2rem">Could not auto-detect entry file.\nPass { entry: 'src/YourApp.jsx' } to the plugin.</pre>`)
+          return
+        }
 
         let html
         try {

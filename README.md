@@ -14,6 +14,7 @@ App.jsx
 ```
 
 Zero dependencies. Works with any React project (Vite, CRA, Next.js).
+Auto-detects your entry file — no configuration needed.
 
 ---
 
@@ -22,13 +23,15 @@ Zero dependencies. Works with any React project (Vite, CRA, Next.js).
 ### Run instantly with npx (no install)
 
 ```bash
-npx github:argado2248/react-tree src/App.jsx
+npx github:argado2248/react-tree
 ```
+
+That's it. It auto-detects `src/App.jsx`, `src/main.tsx`, `pages/index.tsx`, etc.
 
 ### Or clone and install globally
 
 ```bash
-git clone https://github.com/yourname/react-tree
+git clone https://github.com/argado2248/react-tree
 cd react-tree
 npm link
 ```
@@ -36,14 +39,21 @@ npm link
 Now `react-tree` is available anywhere on your machine:
 
 ```bash
-react-tree src/App.jsx
+cd your-react-project
+react-tree
 ```
 
 ---
 
 ## Usage
 
-### Terminal tree
+### Terminal tree (auto-detect)
+
+```bash
+react-tree
+```
+
+### Specify entry manually
 
 ```bash
 react-tree src/App.jsx
@@ -52,7 +62,7 @@ react-tree src/App.jsx
 ### Open interactive HTML in browser
 
 ```bash
-react-tree src/App.jsx --html
+react-tree --html
 ```
 
 Writes `react-tree.html` and opens it automatically. Nodes are collapsible and hovering shows the full file path.
@@ -60,8 +70,22 @@ Writes `react-tree.html` and opens it automatically. Nodes are collapsible and h
 ### Custom output path
 
 ```bash
-react-tree src/App.jsx --html --out /tmp/my-tree.html
+react-tree --html --out /tmp/my-tree.html
 ```
+
+---
+
+## Auto-detection
+
+When no entry file is specified, react-tree looks for these files in order:
+
+| Framework | Files checked |
+| --- | --- |
+| Vite / CRA | `src/App.jsx`, `src/App.tsx`, `src/main.jsx`, `src/main.tsx`, `src/index.jsx`, `src/index.tsx` |
+| Next.js (App Router) | `app/page.jsx`, `app/page.tsx` |
+| Next.js (Pages Router) | `pages/index.jsx`, `pages/index.tsx`, `pages/_app.jsx`, `pages/_app.tsx` |
+
+If none are found, it tells you what it tried and asks you to specify manually.
 
 ---
 
@@ -70,13 +94,17 @@ react-tree src/App.jsx --html --out /tmp/my-tree.html
 Add to your project's `vite.config.js` to get a live tree at `/__react-tree` while the dev server is running.
 
 ```js
-import reactTree from 'react-tree/vite'
+import reactTree from "react-tree/vite";
 
 export default {
-  plugins: [
-    reactTree({ entry: 'src/App.jsx' })
-  ]
-}
+  plugins: [reactTree()],
+};
+```
+
+Entry is auto-detected. To override:
+
+```js
+reactTree({ entry: "src/MyApp.tsx" })
 ```
 
 Start your dev server, then visit:
@@ -102,7 +130,7 @@ No build step, no AST libraries — just Node.js built-ins.
 ## Options
 
 | Flag | Description |
-|---|---|
+| --- | --- |
 | `--html` | Generate an interactive HTML page and open it in the browser |
 | `--out <path>` | Custom path for the HTML file (default: `react-tree.html`) |
 | `--help` | Show usage information |
