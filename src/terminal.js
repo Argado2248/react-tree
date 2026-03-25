@@ -43,6 +43,11 @@ export function printTree(tree) {
   console.log('')
   console.log(c.bold('  React Component Tree'))
   console.log(c.gray('  ─────────────────────'))
+  console.log('')
+  console.log(c.gray('  Legend:'))
+  console.log('  ' + c.yellow('(circular)')  + c.gray('   — component already appears higher in the tree (branch cut to prevent infinite loop)'))
+  console.log('  ' + c.red('(unreadable)') + c.gray(' — file could not be read or parsed'))
+  console.log('')
   process.stdout.write('  ' + renderTree(tree).replace(/\n/g, '\n  ').trimEnd())
   console.log('\n')
 }

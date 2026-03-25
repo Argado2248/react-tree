@@ -33,7 +33,22 @@ export function generateHTML(tree) {
     .subtitle {
       color: #6e7681;
       font-size: 12px;
-      margin-bottom: 32px;
+      margin-bottom: 16px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      font-size: 12px;
+      color: #6e7681;
+      margin-bottom: 24px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .tree { user-select: none; }
@@ -107,6 +122,10 @@ export function generateHTML(tree) {
 <body>
   <h1>React Component Tree</h1>
   <p class="subtitle">Click any node to expand / collapse &nbsp;·&nbsp; Hover to see file path</p>
+  <div class="legend">
+    <span class="legend-item"><span class="badge circular">circular</span> component already appears higher in the tree</span>
+    <span class="legend-item"><span class="badge error">unreadable</span> file could not be read or parsed</span>
+  </div>
   <div class="tree" id="tree"></div>
   <div class="path-tooltip" id="tooltip"></div>
 
@@ -136,11 +155,13 @@ export function generateHTML(tree) {
         const badge = document.createElement('span')
         badge.className = 'badge circular'
         badge.textContent = 'circular'
+        badge.title = 'This component already appears higher in the tree. Branch cut to prevent infinite loop.'
         row.appendChild(badge)
       } else if (node.error) {
         const badge = document.createElement('span')
         badge.className = 'badge error'
         badge.textContent = 'unreadable'
+        badge.title = 'This file could not be read or parsed.'
         row.appendChild(badge)
       } else if (node.children.length > 0) {
         const badge = document.createElement('span')
