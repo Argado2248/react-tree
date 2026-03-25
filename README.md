@@ -1,4 +1,4 @@
-# react-tree
+# React Tree
 
 Visualize your React component parent tree in the terminal or browser.
 
