@@ -16,6 +16,8 @@ App.jsx
 Zero dependencies. Works with any React project (Vite, CRA, Next.js).
 Auto-detects your entry file — no configuration needed.
 
+**Made with Claude Code**
+
 ---
 
 ## Quick start
