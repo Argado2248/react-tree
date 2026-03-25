@@ -1,0 +1,19 @@
+{
+  "name": "react-tree",
+  "version": "0.1.0",
+  "description": "Visualize your React component parent tree in the terminal or browser",
+  "type": "module",
+  "bin": {
+    "react-tree": "./bin/react-tree.js"
+  },
+  "exports": {
+    ".": "./src/tree.js",
+    "./vite": "./src/vite-plugin.js"
+  },
+  "scripts": {
+    "example": "node bin/react-tree.js example/App.jsx",
+    "example:html": "node bin/react-tree.js example/App.jsx --html"
+  },
+  "keywords": ["react", "component", "tree", "visualizer", "vite-plugin"],
+  "license": "MIT"
+}
