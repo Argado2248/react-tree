@@ -37,9 +37,9 @@ export function renderTree(node, prefix = '', isLast = true, isRoot = true) {
 }
 
 /**
- * Print the tree to stdout with a header.
+ * Print the tree to stdout with a header and stats summary.
  */
-export function printTree(tree) {
+export function printTree(tree, stats) {
   console.log('')
   console.log(c.bold('  React Component Tree'))
   console.log(c.gray('  ─────────────────────'))
@@ -50,4 +50,15 @@ export function printTree(tree) {
   console.log('')
   process.stdout.write('  ' + renderTree(tree).replace(/\n/g, '\n  ').trimEnd())
   console.log('\n')
+
+  if (stats) {
+    const parts = [
+      `${stats.uniqueComponents} component${stats.uniqueComponents !== 1 ? 's' : ''}`,
+      `${stats.maxDepth} level${stats.maxDepth !== 1 ? 's' : ''} deep`,
+    ]
+    if (stats.circularCount > 0) parts.push(c.yellow(`${stats.circularCount} circular`))
+    if (stats.errorCount > 0) parts.push(c.red(`${stats.errorCount} unreadable`))
+    console.log(c.gray('  ' + parts.join(' · ')))
+    console.log('')
+  }
 }

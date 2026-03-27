@@ -2,8 +2,9 @@
  * Generate a self-contained HTML page that renders an interactive
  * collapsible component tree. No external CDN dependencies.
  */
-export function generateHTML(tree) {
+export function generateHTML(tree, stats) {
   const treeJson = JSON.stringify(tree, null, 2)
+  const statsJson = stats ? JSON.stringify(stats) : 'null'
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -50,6 +51,70 @@ export function generateHTML(tree) {
       align-items: center;
       gap: 6px;
     }
+
+    .stats {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: #8b949e;
+      margin-bottom: 20px;
+    }
+
+    .stat-item {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 6px;
+      padding: 4px 10px;
+    }
+
+    .stat-value { color: #58a6ff; font-weight: 600; }
+    .stat-item.warn .stat-value { color: #e3b341; }
+    .stat-item.error .stat-value { color: #f85149; }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 16px;
+      position: sticky;
+      top: 0;
+      background: #0d1117;
+      padding: 8px 0;
+      z-index: 50;
+    }
+
+    .search-box {
+      flex: 1;
+      max-width: 320px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-family: inherit;
+      font-size: 13px;
+      color: #c9d1d9;
+      outline: none;
+    }
+
+    .search-box:focus { border-color: #58a6ff; }
+    .search-box::placeholder { color: #484f58; }
+
+    .toolbar-btn {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-family: inherit;
+      font-size: 12px;
+      color: #c9d1d9;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .toolbar-btn:hover { background: #30363d; }
+
+    .node.dimmed > .node-row { opacity: 0.25; }
+    .node.highlighted > .node-row .filename { background: #2d1f00; border-radius: 3px; padding: 0 3px; }
 
     .tree { user-select: none; }
 
@@ -126,13 +191,37 @@ export function generateHTML(tree) {
     <span class="legend-item"><span class="badge circular">circular</span> component already appears higher in the tree</span>
     <span class="legend-item"><span class="badge error">unreadable</span> file could not be read or parsed</span>
   </div>
+  <div class="stats" id="stats"></div>
+  <div class="toolbar">
+    <input class="search-box" id="search" type="text" placeholder="Search components..." />
+    <button class="toolbar-btn" id="expand-all">Expand All</button>
+    <button class="toolbar-btn" id="collapse-all">Collapse All</button>
+  </div>
   <div class="tree" id="tree"></div>
   <div class="path-tooltip" id="tooltip"></div>
 
   <script>
     const treeData = ${treeJson}
+    const statsData = ${statsJson}
 
     const tooltip = document.getElementById('tooltip')
+
+    // Render stats
+    if (statsData) {
+      const statsEl = document.getElementById('stats')
+      const items = [
+        { label: 'Components', value: statsData.uniqueComponents },
+        { label: 'Depth', value: statsData.maxDepth },
+      ]
+      if (statsData.circularCount > 0) items.push({ label: 'Circular', value: statsData.circularCount, cls: 'warn' })
+      if (statsData.errorCount > 0) items.push({ label: 'Unreadable', value: statsData.errorCount, cls: 'error' })
+      items.forEach(({ label, value, cls }) => {
+        const el = document.createElement('span')
+        el.className = 'stat-item' + (cls ? ' ' + cls : '')
+        el.innerHTML = '<span class="stat-value">' + value + '</span> ' + label
+        statsEl.appendChild(el)
+      })
+    }
 
     function createNode(node) {
       const el = document.createElement('div')
@@ -212,7 +301,58 @@ export function generateHTML(tree) {
       rootChildren.classList.remove('collapsed')
       root.querySelector('.toggle').textContent = '▼'
     }
-    document.getElementById('tree').appendChild(root)
+    const treeEl = document.getElementById('tree')
+    treeEl.appendChild(root)
+
+    // Expand All / Collapse All
+    document.getElementById('expand-all').addEventListener('click', () => {
+      treeEl.querySelectorAll('.children').forEach(el => el.classList.remove('collapsed'))
+      treeEl.querySelectorAll('.toggle:not(.leaf)').forEach(el => { el.textContent = '▼' })
+    })
+    document.getElementById('collapse-all').addEventListener('click', () => {
+      treeEl.querySelectorAll('.children').forEach(el => el.classList.add('collapsed'))
+      treeEl.querySelectorAll('.toggle:not(.leaf)').forEach(el => { el.textContent = '▶' })
+    })
+
+    // Search
+    const searchInput = document.getElementById('search')
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase()
+      const allNodes = treeEl.querySelectorAll('.node')
+
+      if (!q) {
+        allNodes.forEach(n => { n.classList.remove('dimmed', 'highlighted') })
+        return
+      }
+
+      // Mark each node: does its name or any descendant name match?
+      function markNode(nodeEl) {
+        const name = nodeEl.querySelector(':scope > .node-row .filename').textContent.toLowerCase()
+        const isMatch = name.includes(q)
+        let hasMatchingDescendant = false
+
+        nodeEl.querySelectorAll(':scope > .children > .node').forEach(child => {
+          if (markNode(child)) hasMatchingDescendant = true
+        })
+
+        const visible = isMatch || hasMatchingDescendant
+        nodeEl.classList.toggle('dimmed', !visible)
+        nodeEl.classList.toggle('highlighted', isMatch)
+
+        // Auto-expand ancestors of matches
+        if (hasMatchingDescendant) {
+          const children = nodeEl.querySelector(':scope > .children')
+          const toggle = nodeEl.querySelector(':scope > .node-row .toggle')
+          if (children) { children.classList.remove('collapsed') }
+          if (toggle) { toggle.textContent = '▼' }
+        }
+
+        return visible
+      }
+
+      allNodes.forEach(n => { n.classList.remove('dimmed', 'highlighted') })
+      treeEl.querySelectorAll(':scope > .node').forEach(n => markNode(n))
+    })
   </script>
 </body>
 </html>`

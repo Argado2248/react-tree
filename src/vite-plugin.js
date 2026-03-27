@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { buildTree } from './tree.js'
+import { buildTree, getTreeStats } from './tree.js'
 import { generateHTML } from './html.js'
 
 const ENTRY_CANDIDATES = [
@@ -62,7 +62,7 @@ export default function reactTreePlugin(options = {}) {
         let html
         try {
           const tree = buildTree(entryAbs)
-          html = generateHTML(tree)
+          html = generateHTML(tree, getTreeStats(tree))
         } catch (err) {
           html = `<pre style="color:red;padding:2rem">Error building tree:\n${err.message}</pre>`
         }

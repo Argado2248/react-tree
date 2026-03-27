@@ -2,7 +2,7 @@
 import fs from 'fs'
 import path from 'path'
 import { execSync } from 'child_process'
-import { buildTree } from '../src/tree.js'
+import { buildTree, getTreeStats } from '../src/tree.js'
 import { printTree } from '../src/terminal.js'
 import { generateHTML } from '../src/html.js'
 
@@ -66,6 +66,7 @@ if (args.includes('--help') || args.includes('-h')) {
   Options:
     --html        Generate react-tree.html and open it in your browser
     --out <path>  Custom output path for --html (default: react-tree.html)
+    --watch       Rebuild automatically when source files change
     --update      Pull the latest version from GitHub
     --help        Show this help message
 
@@ -113,6 +114,7 @@ function detectEntry(cwd) {
 
 // Resolve entry file
 const htmlFlag = args.includes('--html')
+const watchFlag = args.includes('--watch')
 const outIdx = args.indexOf('--out')
 const outPath = outIdx !== -1 ? args[outIdx + 1] : 'react-tree.html'
 
@@ -138,14 +140,24 @@ if (positional[0]) {
   }
 }
 
-// Build the tree
-const tree = buildTree(entryAbs)
+// Build and output the tree
+function run() {
+  const tree = buildTree(entryAbs)
+  const stats = getTreeStats(tree)
+
+  if (htmlFlag) {
+    const html = generateHTML(tree, stats)
+    const outAbs = path.resolve(process.cwd(), outPath)
+    fs.writeFileSync(outAbs, html, 'utf8')
+    return outAbs
+  } else {
+    printTree(tree, stats)
+    return null
+  }
+}
 
 if (htmlFlag) {
-  // Write HTML file and open it
-  const html = generateHTML(tree)
-  const outAbs = path.resolve(process.cwd(), outPath)
-  fs.writeFileSync(outAbs, html, 'utf8')
+  const outAbs = run()
   console.log(`\n  \x1b[36m✓\x1b[0m  Wrote ${outAbs}`)
 
   // Open in default browser (cross-platform)
@@ -159,5 +171,42 @@ if (htmlFlag) {
   }
   console.log('')
 } else {
-  printTree(tree)
+  run()
+}
+
+// ── Watch mode ──────────────────────────────────────────────
+if (watchFlag) {
+  const COMPONENT_EXT = /\.(jsx|tsx|js|ts)$/
+  const DEBOUNCE_MS = 300
+  const watchDir = path.dirname(entryAbs)
+
+  let timeout = null
+  const rebuild = () => {
+    const time = new Date().toLocaleTimeString()
+    try {
+      if (htmlFlag) {
+        const outAbs = run()
+        console.log(`  \x1b[36m✓\x1b[0m  Rebuilt ${path.basename(outAbs)} at ${time}`)
+      } else {
+        process.stdout.write('\x1b[2J\x1b[H') // clear screen
+        run()
+        console.log(`\x1b[90m  Rebuilt at ${time} — watching for changes...\x1b[0m\n`)
+      }
+    } catch (err) {
+      console.error(`  \x1b[31m✗\x1b[0m  Rebuild failed at ${time}: ${err.message}`)
+    }
+  }
+
+  console.log(`\x1b[90m  Watching ${path.relative(process.cwd(), watchDir) || '.'} for changes... (Ctrl+C to stop)\x1b[0m\n`)
+
+  fs.watch(watchDir, { recursive: true }, (_event, filename) => {
+    if (!filename || !COMPONENT_EXT.test(filename)) return
+    clearTimeout(timeout)
+    timeout = setTimeout(rebuild, DEBOUNCE_MS)
+  })
+
+  process.on('SIGINT', () => {
+    console.log(`\n  \x1b[90mStopped watching.\x1b[0m\n`)
+    process.exit(0)
+  })
 }

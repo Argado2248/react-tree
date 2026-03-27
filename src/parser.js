@@ -32,12 +32,30 @@ export function resolveImport(specifier, fromDir) {
 }
 
 /**
+ * Strip comments and template literals so the import / JSX regexes
+ * don't match code inside non-executable text.
+ * Regular strings are kept intact (import paths are string literals).
+ */
+function stripNonCode(src) {
+  return src.replace(
+    /\/\/.*$|\/\*[\s\S]*?\*\/|`(?:\\[\s\S]|[^`])*`|'(?:\\[\s\S]|[^'])*'|"(?:\\[\s\S]|[^"])*"/gm,
+    (match) => {
+      // Keep single/double-quoted strings (needed for import paths)
+      if (match[0] === "'" || match[0] === '"') return match
+      // Replace comments and template literals with spaces
+      return match.replace(/[^\n]/g, ' ')
+    }
+  )
+}
+
+/**
  * Parse a JSX/TSX file and return:
  * - imports: Map<localName, absoluteFilePath>  (only local relative imports)
  * - usedComponents: Set<localName>  (uppercase tags used in JSX)
  */
 export function parseFile(filePath) {
-  const src = fs.readFileSync(filePath, 'utf8')
+  const raw = fs.readFileSync(filePath, 'utf8')
+  const src = stripNonCode(raw)
   const dir = path.dirname(filePath)
   const imports = new Map()
 

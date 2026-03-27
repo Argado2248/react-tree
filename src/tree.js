@@ -38,3 +38,25 @@ export function buildTree(entryFile, visited = new Set()) {
 
   return { name, path: absPath, children }
 }
+
+/**
+ * Walk the tree and collect stats.
+ * @returns {{ totalNodes: number, uniqueComponents: number, maxDepth: number, circularCount: number, errorCount: number }}
+ */
+export function getTreeStats(node, depth = 0, seen = new Set()) {
+  seen.add(node.path)
+  let totalNodes = 1
+  let maxDepth = depth
+  let circularCount = node.circular ? 1 : 0
+  let errorCount = node.error ? 1 : 0
+
+  for (const child of node.children) {
+    const s = getTreeStats(child, depth + 1, seen)
+    totalNodes += s.totalNodes
+    if (s.maxDepth > maxDepth) maxDepth = s.maxDepth
+    circularCount += s.circularCount
+    errorCount += s.errorCount
+  }
+
+  return { totalNodes, uniqueComponents: seen.size, maxDepth, circularCount, errorCount }
+}

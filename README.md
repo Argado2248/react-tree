@@ -11,6 +11,8 @@ App.jsx
 │   ├── Hero.jsx
 │   └── Sidebar.jsx
 └── Footer.jsx
+
+8 components · 2 levels deep
 ```
 
 Zero dependencies. Works with any React project (Vite, CRA, Next.js).
@@ -69,13 +71,28 @@ react-tree src/App.jsx
 react-tree --html
 ```
 
-Writes `react-tree.html` and opens it automatically. Nodes are collapsible and hovering shows the full file path.
+Writes `react-tree.html` and opens it automatically. Features:
+
+- Collapsible nodes (click to expand/collapse)
+- **Search box** — type to find components, matching nodes are highlighted and auto-expanded
+- **Expand All / Collapse All** buttons
+- Stats bar showing component count, tree depth, and any circular/unreadable nodes
+- Hover tooltip showing full file path
 
 ### Custom output path
 
 ```bash
 react-tree --html --out /tmp/my-tree.html
 ```
+
+### Watch mode
+
+```bash
+react-tree --watch
+react-tree --html --watch
+```
+
+Automatically rebuilds the tree when `.jsx`, `.tsx`, `.js`, or `.ts` files change. In terminal mode it clears and reprints; in HTML mode it rewrites the output file.
 
 ---
 
@@ -123,9 +140,11 @@ http://localhost:5173/__react-tree
 
 react-tree reads your JSX/TSX files and:
 
-1. Finds all local imports (`import Navbar from './Navbar'`)
-2. Checks which of those components are actually rendered (`<Navbar />`)
-3. Follows the chain recursively to build the full tree
+1. Strips comments and template literals so commented-out code is ignored
+2. Finds all local imports (`import Navbar from './Navbar'`)
+3. Checks which of those components are actually rendered (`<Navbar />`)
+4. Follows the chain recursively to build the full tree
+5. Collects stats (component count, depth, circular references)
 
 No build step, no AST libraries — just Node.js built-ins.
 
@@ -155,5 +174,6 @@ That's it — pulls the latest from GitHub automatically.
 | --- | --- |
 | `--html` | Generate an interactive HTML page and open it in the browser |
 | `--out <path>` | Custom path for the HTML file (default: `react-tree.html`) |
+| `--watch` | Rebuild automatically when source files change |
 | `--update` | Pull the latest version from GitHub |
 | `--help` | Show usage information |
