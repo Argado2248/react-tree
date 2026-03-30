@@ -53,8 +53,8 @@ if (args.includes('--update')) {
   process.exit(0)
 }
 
-// Subcommands
-if (args[0] === 'clean') {
+// Clean
+if (args.includes('--clean')) {
   const { cleanProject } = await import('../src/clean.js')
   cleanProject(process.cwd())
   process.exit(0)
@@ -66,15 +66,12 @@ if (args.includes('--help') || args.includes('-h')) {
 
   Usage:
     react-tree [entry-file] [options]
-    react-tree clean
 
   Arguments:
     entry-file    Path to your root component (auto-detected if omitted)
 
-  Subcommands:
-    clean         Remove boilerplate from a new CRA or Vite project
-
   Options:
+    --clean       Remove boilerplate from a new CRA or Vite project
     --html        Generate react-tree.html and open it in your browser
     --out <path>  Custom output path for --html (default: react-tree.html)
     --watch       Rebuild automatically when source files change
@@ -85,7 +82,7 @@ if (args.includes('--help') || args.includes('-h')) {
     react-tree src/App.jsx
     react-tree src/main.jsx --html
     react-tree src/App.tsx --html --out /tmp/tree.html
-    react-tree clean
+    react-tree --clean
 
   Vite plugin (add to vite.config.js):
     import reactTree from 'react-tree/vite'
@@ -174,10 +171,12 @@ if (htmlFlag) {
 
   // Open in default browser (cross-platform)
   try {
-    const open = process.platform === 'darwin' ? 'open'
-      : process.platform === 'win32' ? 'start'
-      : 'xdg-open'
-    execSync(`${open} "${outAbs}"`)
+    if (process.platform === 'win32') {
+      execSync(`start "" "${outAbs}"`)
+    } else {
+      const open = process.platform === 'darwin' ? 'open' : 'xdg-open'
+      execSync(`${open} "${outAbs}"`)
+    }
   } catch {
     console.log(`  Open it manually in your browser.`)
   }

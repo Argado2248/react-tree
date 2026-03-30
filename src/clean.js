@@ -16,7 +16,6 @@ const CRA_BOILERPLATE = [
   'public/manifest.json',
   'public/robots.txt',
   'src/App.css',
-  'src/index.css',
 ]
 
 const VITE_BOILERPLATE = [
@@ -27,7 +26,6 @@ const VITE_BOILERPLATE = [
   'src/assets/vite.svg',
   'src/assets/hero.png',
   'src/App.css',
-  'src/index.css',
 ]
 
 const MINIMAL_APP = `function App() {
@@ -87,6 +85,15 @@ function deleteBoilerplateFiles(cwd, projectType) {
   }
 
   return count
+}
+
+function emptyIndexCss(cwd) {
+  const rel = 'src/index.css'
+  const abs = path.join(cwd, rel)
+  if (fs.existsSync(abs)) {
+    fs.writeFileSync(abs, '', 'utf8')
+    console.log(`  \x1b[36m\u2713\x1b[0m  Emptied ${rel}`)
+  }
 }
 
 function replaceAppFile(cwd) {
@@ -179,6 +186,7 @@ export function cleanProject(cwd) {
   console.log(`\n  \x1b[90mDetected:\x1b[0m ${label} project\n`)
 
   deleteBoilerplateFiles(cwd, projectType)
+  emptyIndexCss(cwd)
   replaceAppFile(cwd)
   cleanEntryFile(cwd, projectType)
   cleanIndexHtml(cwd, projectType)

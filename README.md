@@ -99,7 +99,7 @@ Automatically rebuilds the tree when `.jsx`, `.tsx`, `.js`, or `.ts` files chang
 Strip boilerplate from a freshly created CRA or Vite project:
 
 ```bash
-npx github:argado2248/react-tree clean
+npx github:argado2248/react-tree --clean
 ```
 
 Auto-detects CRA vs Vite and removes the usual boilerplate:
@@ -107,7 +107,7 @@ Auto-detects CRA vs Vite and removes the usual boilerplate:
 - **Logos & icons** — `logo.svg`, `vite.svg`, `react.svg`, `favicon.svg`, PNG logos
 - **Test setup** — `setupTests.js`, `App.test.js`
 - **Utilities** — `reportWebVitals.js`
-- **CSS** — `App.css`, `index.css`
+- **CSS** — `App.css` deleted, `index.css` emptied
 - **PWA files** — `manifest.json`, `robots.txt`
 
 Also replaces `App.jsx` with a minimal starter and cleans dead imports from entry files and `index.html`.
@@ -190,7 +190,7 @@ That's it — pulls the latest from GitHub automatically.
 
 | Flag | Description |
 | --- | --- |
-| `clean` | Remove boilerplate from a new CRA or Vite project |
+| `--clean` | Remove boilerplate from a new CRA or Vite project |
 | `--html` | Generate an interactive HTML page and open it in the browser |
 | `--out <path>` | Custom path for the HTML file (default: `react-tree.html`) |
 | `--watch` | Rebuild automatically when source files change |
