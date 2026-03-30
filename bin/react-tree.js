@@ -2,6 +2,7 @@
 import fs from 'fs'
 import path from 'path'
 import { execSync } from 'child_process'
+import { fileURLToPath } from 'url'
 import { buildTree, getTreeStats } from '../src/tree.js'
 import { printTree } from '../src/terminal.js'
 import { generateHTML } from '../src/html.js'
@@ -9,22 +10,40 @@ import { generateHTML } from '../src/html.js'
 const args = process.argv.slice(2)
 
 // ── Self-update ─────────────────────────────────────────────
-const REPO_DIR = path.resolve(new URL('.', import.meta.url).pathname, '..')
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const REPO_DIR = path.resolve(__dirname, '..')
+const isGitInstall = fs.existsSync(path.join(REPO_DIR, '.git'))
 
 function selfUpdate() {
   console.log(`\n  \x1b[36m⟳\x1b[0m  Updating react-tree...`)
-  try {
-    execSync('git pull --ff-only', { cwd: REPO_DIR, stdio: 'pipe' })
-    const msg = execSync('git log -1 --pretty=%s', { cwd: REPO_DIR, encoding: 'utf8' }).trim()
-    console.log(`  \x1b[32m✓\x1b[0m  Up to date — latest: ${msg}\n`)
-  } catch {
-    console.error(`  \x1b[31m✗\x1b[0m  Update failed. Run manually:\n      cd ${REPO_DIR} && git pull\n`)
-    process.exit(1)
+
+  if (isGitInstall) {
+    try {
+      execSync('git pull --ff-only', { cwd: REPO_DIR, stdio: 'pipe' })
+      const msg = execSync('git log -1 --pretty=%s', { cwd: REPO_DIR, encoding: 'utf8' }).trim()
+      console.log(`  \x1b[32m✓\x1b[0m  Up to date — latest: ${msg}\n`)
+    } catch {
+      console.error(`  \x1b[31m✗\x1b[0m  Update failed. Run manually:`)
+      console.error(`      cd ${REPO_DIR}`)
+      console.error(`      git pull\n`)
+      process.exit(1)
+    }
+  } else {
+    try {
+      execSync('npm install -g github:argado2248/react-tree', { stdio: 'inherit' })
+      console.log(`\n  \x1b[32m✓\x1b[0m  react-tree updated successfully.\n`)
+    } catch {
+      console.error(`\n  \x1b[31m✗\x1b[0m  Update failed. Run manually:`)
+      console.error(`      npm install -g github:argado2248/react-tree\n`)
+      process.exit(1)
+    }
   }
 }
 
 // Check for updates once per day (non-blocking, best-effort)
 function checkForUpdates() {
+  if (!isGitInstall) return
+
   const stampFile = path.join(REPO_DIR, '.last-update-check')
   const ONE_DAY = 24 * 60 * 60 * 1000
 
