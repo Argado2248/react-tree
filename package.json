@@ -4,7 +4,8 @@
   "description": "Visualize your React component parent tree in the terminal or browser",
   "type": "module",
   "bin": {
-    "react-tree": "./bin/react-tree.js"
+    "react-tree": "./bin/react-tree.js",
+    "react-clean": "./bin/react-clean.js"
   },
   "exports": {
     ".": "./src/tree.js",

@@ -53,15 +53,26 @@ if (args.includes('--update')) {
   process.exit(0)
 }
 
+// Subcommands
+if (args[0] === 'clean') {
+  const { cleanProject } = await import('../src/clean.js')
+  cleanProject(process.cwd())
+  process.exit(0)
+}
+
 if (args.includes('--help') || args.includes('-h')) {
   console.log(`
   react-tree — Visualize your React component tree
 
   Usage:
     react-tree [entry-file] [options]
+    react-tree clean
 
   Arguments:
     entry-file    Path to your root component (auto-detected if omitted)
+
+  Subcommands:
+    clean         Remove boilerplate from a new CRA or Vite project
 
   Options:
     --html        Generate react-tree.html and open it in your browser
@@ -74,6 +85,7 @@ if (args.includes('--help') || args.includes('-h')) {
     react-tree src/App.jsx
     react-tree src/main.jsx --html
     react-tree src/App.tsx --html --out /tmp/tree.html
+    react-tree clean
 
   Vite plugin (add to vite.config.js):
     import reactTree from 'react-tree/vite'

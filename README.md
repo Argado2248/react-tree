@@ -32,12 +32,10 @@ npx github:argado2248/react-tree
 
 That's it. It auto-detects `src/App.jsx`, `src/main.tsx`, `pages/index.tsx`, etc.
 
-### Or clone and install globally
+### Or install globally
 
 ```bash
-git clone https://github.com/argado2248/react-tree
-cd react-tree
-npm link
+npm install -g github:argado2248/react-tree
 ```
 
 Now `react-tree` is available anywhere on your machine:
@@ -93,6 +91,26 @@ react-tree --html --watch
 ```
 
 Automatically rebuilds the tree when `.jsx`, `.tsx`, `.js`, or `.ts` files change. In terminal mode it clears and reprints; in HTML mode it rewrites the output file.
+
+---
+
+## Clean up a new project
+
+Strip boilerplate from a freshly created CRA or Vite project:
+
+```bash
+npx github:argado2248/react-tree clean
+```
+
+Auto-detects CRA vs Vite and removes the usual boilerplate:
+
+- **Logos & icons** — `logo.svg`, `vite.svg`, `react.svg`, `favicon.svg`, PNG logos
+- **Test setup** — `setupTests.js`, `App.test.js`
+- **Utilities** — `reportWebVitals.js`
+- **CSS** — `App.css`, `index.css`
+- **PWA files** — `manifest.json`, `robots.txt`
+
+Also replaces `App.jsx` with a minimal starter and cleans dead imports from entry files and `index.html`.
 
 ---
 
@@ -172,6 +190,7 @@ That's it — pulls the latest from GitHub automatically.
 
 | Flag | Description |
 | --- | --- |
+| `clean` | Remove boilerplate from a new CRA or Vite project |
 | `--html` | Generate an interactive HTML page and open it in the browser |
 | `--out <path>` | Custom path for the HTML file (default: `react-tree.html`) |
 | `--watch` | Rebuild automatically when source files change |
